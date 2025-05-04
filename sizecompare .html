@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karl's Visual Penis Size Comparison Tool</title>
+
+    <style>
+        :root {
+             /* Theme Colors */
+             --theme-purple: #6a4acd; --theme-grey: #e0e0e0; --theme-dark-grey: #ccc;
+             --theme-text-dark: #333; --theme-text-light: #fff;
+             --container-border-color: #ddd; --heading-text-color: #333;
+             --link-cta-border-radius: 4px; --link-cta-box-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+             --link-cta-padding: 8px 15px;
+             --selector-button--checked-background-color: var(--theme-purple);
+             --selector-button--checked-text-color: var(--theme-text-light);
+             --selector-button--unchecked-background-color: var(--theme-grey);
+             --selector-button--unchecked-text-color: var(--theme-text-dark);
+             /* Original Visual Colors */
+             --penis-shaft-color-light: #b79a74; --penis-shaft-color-mid1: #bc9e75;
+             --penis-shaft-color-mid2: #bb9d75; --penis-shaft-color-dark: #9C8566;
+             --penis-head-color-base: #c07d6d; --penis-head-gradient-inner: rgb(219 151 135);
+             --penis-head-gradient-outer: rgb(156 105 93);
+             /* Scale (Removed, keeping ratio for visual sizing consistency) */
+             --scale-factor: 2.5; /* Default Scale Ratio - User Adjustable */
+        }
+        @media (prefers-color-scheme: dark) {
+          :root {
+             --container-border-color: #444; --heading-text-color: #eee;
+             --theme-text-dark: #eee; --theme-grey: #555; --theme-dark-grey: #444;
+             --selector-button--unchecked-background-color: #555;
+             --selector-button--unchecked-text-color: #eee;
+             --penis-shaft-color-light: #a1886a; --penis-shaft-color-mid1: #a68c6b;
+             --penis-shaft-color-mid2: #a58b6b; --penis-shaft-color-dark: #8a745c;
+             --penis-head-color-base: #a96f61; --penis-head-gradient-inner: rgb(193 134 120);
+             --penis-head-gradient-outer: rgb(139 94 83);
+          }
+          body { color: #eee; background-color: #121212; }
+          .info { background-color: #333; border-color: #444;}
+          .disclaimer { background-color: #4b3133; color: #f8d7da; border-color: #a55158;}
+          a { color: #8ab4f8; }
+          select.selector-menu { background-color: #444; border-color: #666; color: #eee; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="5" viewBox="0 0 10 5"><path fill="%23eee" d="M0 0l5 5 5-5z"/></svg>'); }
+          button { background-color: #555; color: #eee; }
+          .settings-group { background-color: #2e2e2e; }
+           /* Dark mode slider thumb */
+           input[type="range"]::-webkit-slider-thumb { background: #8ab4f8; }
+           input[type="range"]::-moz-range-thumb { background: #8ab4f8; }
+           input[type="range"]::-ms-thumb { background: #8ab4f8; }
+        }
+
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 1100px; margin: 20px auto; color: var(--theme-text-dark); background-color: #f9f9f9; }
+        h1 { text-align: center; color: var(--heading-text-color); margin-bottom: 30px;}
+        .info, .disclaimer { background-color: #f0f0f0; border: 1px solid var(--container-border-color); padding: 15px; margin: 25px 0; border-radius: 8px; }
+        .disclaimer { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .disclaimer strong { display: block; margin-bottom: 10px; }
+        ul { margin-top: 0; padding-left: 20px; } li { margin-bottom: 5px; }
+        a { color: var(--theme-purple); text-decoration: none; } a:hover { text-decoration: underline; }
+
+        /* --- Main Layout --- */
+        #comparison-tool-container { display: grid; grid-template-columns: 280px 1fr; gap: 30px; align-items: flex-start; }
+        @media (max-width: 900px) { #comparison-tool-container { grid-template-columns: 1fr; } #visuals-column { margin-top: 30px; } }
+
+        /* --- Settings Column --- */
+        #settings-column { display: flex; flex-direction: column; gap: 25px; }
+        .settings-group { border: 1px solid var(--container-border-color); border-radius: 6px; padding: 15px; background-color: #fff; }
+        .settings-group h3 { font-size: 18px; font-weight: 600; margin: 0 0 15px; padding-bottom: 10px; border-bottom: 1px solid var(--container-border-color); color: var(--heading-text-color); }
+        .settings-group span { display: block; margin-bottom: 12px; }
+        .settings-group label { font-weight: 500; margin-right: 5px;}
+        #general-toggles { display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; }
+        #general-toggles .settings-toggle { flex-basis: calc(50% - 10px); text-align: center;}
+        .dimension-settings .bold-label { align-items: center; display: grid; font-size: 15px; grid-template-columns: 60px 1fr; gap: 10px; margin-bottom: 15px; }
+        .dimension-settings .bold-label label { font-weight: 600; text-align: right; }
+        .dimension-settings button { margin-top: 15px; display: block; width: 100%;}
+
+        /* Scale Adjustment Control */
+        #scale-adjustment-settings .scale-control-row { display: flex; align-items: center; gap: 10px; }
+        #scale-adjustment-settings .scale-control-row label { flex-shrink: 0; }
+        #scale-adjustment-settings .scale-control-row input[type="range"] { flex-grow: 1; margin: 0; }
+        #scale-adjustment-settings .scale-control-row .current-value { font-weight: bold; min-width: 3em; text-align: center; }
+
+
+        /* --- Visuals Column --- */
+        #visuals-column { position: relative; padding-top: 20px; } /* Adjust padding if needed */
+        #penis-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; position: relative; z-index: 1; padding: 0; /* Remove padding related to scale numbers */ }
+        @media (max-width: 500px) { #penis-comparison { gap: 20px; padding: 0; /* Remove padding related to scale numbers */ } }
+
+
+        /* Visual Elements */
+        .penis-length { justify-self: center; align-self: end; min-width: 40px; position: relative; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.1)); }
+        .penis-erect-length { margin-bottom: 0; }
+        .penis-flaccid-length { transform: scaleY(-1); margin-bottom: 40px; }
+
+        /* Base Penis Styling (Original Gradients) */
+        .penis-girth { height: 100%; transition: width 0.5s ease-out; }
+        .penis-body { align-items: center; display: flex; flex-direction: column; height: 100%; position: relative; z-index: 1; transition: filter 0.5s; }
+        .penis-shaft { background-color: var(--penis-shaft-color-mid1); background: linear-gradient(90deg, var(--penis-shaft-color-dark), var(--penis-shaft-color-light) 15%, var(--penis-shaft-color-mid1) 30%, var(--penis-shaft-color-mid2), var(--penis-shaft-color-mid1) 70%, var(--penis-shaft-color-light) 85%, var(--penis-shaft-color-dark)); border-radius: 10% 10% 0 0 / 20% 20% 0 0; flex: 1; margin-top: -20%; position: relative; width: 100%; z-index: 2; transition: background 0.5s, border-radius 0.5s; }
+        .penis-head { aspect-ratio: 1; background-color: var(--penis-head-color-base); background: radial-gradient(95% 100% at top, rgba(192,125,109,0) 80%, var(--penis-head-gradient-outer) 95%, var(--penis-head-gradient-outer) 100%), radial-gradient(65% 100% at bottom, rgba(192,125,109,0) 60%, var(--penis-head-gradient-inner) 85%, var(--penis-head-gradient-inner) 100%); border-radius: 45% 45% 50% 50% / 75% 75% 25% 25%; position: relative; width: 100%; z-index: 3; transition: background 0.5s, border-radius 0.5s, width 0.5s, aspect-ratio 0.5s; }
+        .penis-flaccid-head { background: radial-gradient(60% 100% at bottom, rgba(192,125,109,0) 50%, var(--penis-head-gradient-outer) 85%, var(--penis-head-gradient-outer) 100%), radial-gradient(95% 95% at top, rgba(192,125,109,0) 60%, var(--penis-head-gradient-inner) 80%, var(--penis-head-gradient-inner) 100%); background-color: var(--penis-head-color-base); }
+
+        /* State Visibility */
+        #penis-comparison.state-erect .penis-flaccid-length,
+        #penis-comparison.state-flaccid .penis-erect-length,
+        #penis-comparison.state-erect #penis-a-flaccid-settings,
+        #penis-comparison.state-flaccid #penis-a-erect-settings,
+        #penis-comparison.state-erect #penis-b-flaccid-settings,
+        #penis-comparison.state-flaccid #penis-b-erect-settings {
+            /* Use visibility hidden to prevent layout shifts */
+            visibility: hidden;
+            height: 0; /* Collapse height when hidden */
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+         /* Ensure active settings are visible */
+        #penis-comparison.state-erect #penis-a-erect-settings,
+        #penis-comparison.state-erect #penis-b-erect-settings,
+        #penis-comparison.state-flaccid #penis-a-flaccid-settings,
+        #penis-flaccid-settings #penis-b-flaccid-settings {
+            visibility: visible;
+            height: auto; /* Restore height */
+            /* Restore padding/margin/border if they were set */
+        }
+
+
+        /* --- Scale Fixes (Removed) --- */
+
+
+        /* --- Controls Styling --- */
+        .selector-buttons--control { position: absolute; opacity: 0; pointer-events: none; }
+        .selector-buttons { display: inline-flex; }
+        .selector-buttons--button { display: inline-block; padding: var(--link-cta-padding); background-color: var(--selector-button--unchecked-background-color); color: var(--selector-button--unchecked-text-color); border: 1px solid var(--theme-dark-grey); border-radius: var(--link-cta-border-radius); cursor: pointer; transition: background-color 0.2s, color 0.2s; user-select: none; font-size: 14px; font-weight: 500; flex-grow: 1; text-align: center;}
+        .selector-buttons--button:first-of-type { border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: none;}
+        .selector-buttons--button:last-of-type { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+        #selector-inches:checked ~ #unit-selector #selector-inches-label,
+        #selector-metric:checked ~ #unit-selector #selector-metric-label,
+        #selector-erect:checked ~ #flaccid-erect-selector #selector-erect-label,
+        #selector-flaccid:checked ~ #flaccid-erect-selector #selector-flaccid-label { background-color: var(--selector-button--checked-background-color); color: var(--selector-button--checked-text-color); border-color: var(--theme-purple); }
+        button { background-color: var(--theme-grey); border: 1px solid var(--theme-dark-grey); color: var(--theme-text-dark); border-radius: var(--link-cta-border-radius); padding: 8px 15px; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s; }
+        button:hover { background-color: var(--theme-dark-grey); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        @media (prefers-color-scheme: dark) { button:hover { background-color: #666; } }
+        select.selector-menu { width: 100%; height: 38px; padding: 0 10px; background-color: #fff; border: 1px solid var(--theme-dark-grey); border-radius: var(--link-cta-border-radius); font-size: 15px; color: var(--theme-text-dark); appearance: none; background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="5" viewBox="0 0 10 5"><path fill="%23333" d="M0 0l5 5 5-5z"/></svg>'); background-repeat: no-repeat; background-position: right 10px center; background-size: 10px 5px; }
+
+        /* --- Removed Object Comparison Styling --- */
+
+    </style>
+</head>
+<body>
+
+    <h1>Karl's Visual Penis Size Comparison Tool</h1>
+
+    <div class="info">
+        <p>Use the controls to visualize penis dimensions and compare them side-by-side.</p>
+        <ul>
+            <li>Select Units (Inches/Metric) and State (Erect/Flaccid).</li>
+            <li>Adjust Length and Girth for both the "You" visual (left) and the "Compare" visual (right).</li>
+            <li>The "Set to average" button applies average dimensions to the "Compare" visual.</li>
+             <li>Adjust the "Scale Factor" slider to calibrate the visual size to your monitor.</li>
+        </ul>
+    </div>
+
+    <div id="comparison-tool-container">
+        <div id="settings-column">
+            <div id="general-toggles" class="settings-group">
+                 <div class="settings-toggle">
+                     <input type="radio" class="selector-buttons--control" name="selector-units" id="selector-inches" value="selector-inches" checked>
+                     <input type="radio" class="selector-buttons--control" name="selector-units" id="selector-metric" value="selector-metric">
+                     <div id="unit-selector" class="selector-buttons">
+                         <label for="selector-inches" id="selector-inches-label" class="selector-buttons--button">Inches</label>
+                         <label for="selector-metric" id="selector-metric-label" class="selector-buttons--button">Metric</label>
+                     </div>
+                 </div>
+                 <div class="settings-toggle">
+                      <input type="radio" class="selector-buttons--control" name="selector-flaccid-erect" id="selector-erect" value="selector-erect" checked>
+                      <input type="radio" class="selector-buttons--control" name="selector-flaccid-erect" id="selector-flaccid" value="selector-flaccid">
+                      <div id="flaccid-erect-selector" class="selector-buttons">
+                          <label for="selector-erect" id="selector-erect-label" class="selector-buttons--button">Erect</label>
+                          <label for="selector-flaccid" id="selector-flaccid-label" class="selector-buttons--button">Flaccid</label>
+                      </div>
+                 </div>
+            </div>
+
+            <div id="penis-a-settings" class="settings-group dimension-settings">
+                 <h3>You:</h3>
+                 <div id="penis-a-erect-settings">
+                     <span id="set-penis-a-erect-length-label" class="bold-label"><label>Length:</label></span>
+                     <span id="set-penis-a-erect-girth-label" class="bold-label"><label>Girth:</label></span>
+                 </div>
+                 <div id="penis-a-flaccid-settings">
+                      <span id="set-penis-a-flaccid-length-label" class="bold-label"><label>Length:</label></span>
+                      <span id="set-penis-a-flaccid-girth-label" class="bold-label"><label>Girth:</label></span>
+                 </div>
+            </div>
+
+             <div id="penis-b-settings" class="settings-group dimension-settings">
+                 <h3>Compare:</h3>
+                 <div id="penis-b-erect-settings">
+                      <span id="set-penis-b-erect-length-label" class="bold-label"><label>Length:</label></span>
+                      <span id="set-penis-b-erect-girth-label" class="bold-label"><label>Girth:</label></span>
+                      <button onclick="setErectAverageB()">Set to average</button>
+                 </div>
+                 <div id="penis-b-flaccid-settings">
+                      <span id="set-penis-b-flaccid-length-label" class="bold-label"><label>Length:</label></span>
+                      <span id="set-penis-b-flaccid-girth-label" class="bold-label"><label>Girth:</label></span>
+                      <button onclick="setFlaccidAverageB()">Set to average</button>
+                 </div>
+            </div>
+
+             <div id="scale-adjustment-settings" class="settings-group">
+                 <h3>Display Scale</h3>
+                 <div class="scale-control-row">
+                     <label for="scale-factor-slider">Scale Factor:</label>
+                     <input type="range" id="scale-factor-slider" min="0.5" max="10" step="0.1">
+                     <span id="current-scale-factor" class="current-value">2.5</span>
+                 </div>
+                 <p style="font-size: 0.9em; margin-top: 10px; color: #555;">Adjust this slider to make the visuals appear true-to-size on your screen. You can compare against a ruler or known object.</p>
+             </div>
+
+
+        </div>
+        <div id="visuals-column">
+            <div id="penis-comparison" class="state-erect units-inches">
+                 <div id="penis-a-erect-length" class="penis-length penis-erect-length penis-a"><div id="penis-a-erect-girth" class="penis-girth penis-erect-girth"><div id="penis-a-erect-body" class="penis-body"><div id="penis-a-erect-head" class="penis-erect-head penis-head"></div><div id="penis-a-erect-shaft" class="penis-erect-shaft penis-shaft"></div></div></div></div>
+                 <div id="penis-b-erect-length" class="penis-length penis-erect-length penis-b"><div id="penis-b-erect-girth" class="penis-girth penis-erect-girth"><div id="penis-b-erect-body" class="penis-body"><div id="penis-b-erect-head" class="penis-erect-head penis-head"></div><div id="penis-b-erect-shaft" class="penis-erect-shaft penis-shaft"></div></div></div></div>
+                 <div id="penis-a-flaccid-length" class="penis-length penis-flaccid-length penis-a"><div id="penis-a-flaccid-girth" class="penis-girth penis-flaccid-girth"><div id="penis-a-flaccid-body" class="penis-body"><div id="penis-a-flaccid-head" class="penis-flaccid-head penis-head"></div><div id="penis-a-flaccid-shaft" class="penis-flaccid-shaft penis-shaft"></div></div></div></div>
+                 <div id="penis-b-flaccid-length" class="penis-length penis-flaccid-length penis-b"><div id="penis-b-flaccid-girth" class="penis-girth penis-flaccid-girth"><div id="penis-b-flaccid-body" class="penis-body"><div id="penis-b-flaccid-head" class="penis-flaccid-head penis-head"></div><div id="penis-b-flaccid-shaft" class="penis-flaccid-shaft penis-shaft"></div></div></div></div>
+            </div>
+        </div>
+    </div>
+    <div class="disclaimer">
+         <strong>Please Note:</strong> For an explanation of the "global average" penis size used here, visit https://calcsd.info/ - yes, the average really IS correct. If you believe otherwise, know that the science in the matter is solid with large empirical studies of good methodology - your perception can be influenced by camera tricks in porn, small female actors in porn, and a lack of size references. VR porn offers a better scale perception and can somewhat restore your distorted perception if you suffer from penile dysmorphophobia.
+    </div>
+
+    <script type="text/javascript">
+        // --- Config & Constants ---
+        // Updated average values (erect as requested, flaccid kept proportionally similar to old values in the new range)
+        const avgErectLengthValue = 5.444; // inches
+        const avgErectGirthValue = 4.625; // inches
+        const avgFlaccidLengthValue = 3.5; // inches (approximate based on previous values)
+        const avgFlaccidGirthValue = 3.75; // inches (approximate based on previous values)
+
+        // Internal representation: value * 100 (for 0.01" precision, though options are 0.1")
+        // Round to the nearest available option value (multiples of 10)
+        const avgErectLengthInternal = Math.round(avgErectLengthValue * 100 / 10) * 10; // Rounds 544.4 to 540
+        const avgErectGirthInternal = Math.round(avgErectGirthValue * 100 / 10) * 10; // Rounds 462.5 to 470
+        const avgFlaccidLengthInternal = Math.round(avgFlaccidLengthValue * 100 / 10) * 10; // Rounds 350 to 350
+        const avgFlaccidGirthInternal = Math.round(avgFlaccidGirthValue * 100 / 10) * 10; // Rounds 375 to 380
+
+
+        const erectGirthRatio = Math.PI / 1.1;
+        const flaccidGirthRatio = Math.PI / 1.0;
+
+        // fixedScaleRatio will now read the updated --scale-factor from CSS
+        let fixedScaleRatio; // Will be set dynamically
+
+        // --- DOM References ---
+        let comparisonDiv, stateSelectorErect, stateSelectorFlaccid, unitsSelectorInches, unitsSelectorMetric;
+        let setErectALength, setErectAGirth, setFlaccidALength, setFlaccidAGirth;
+        let setErectBLength, setErectBGirth, setFlaccidBLength, setFlaccidBGirth;
+        let scaleFactorSlider, currentScaleFactorSpan; // New references
+
+        // --- Core Functions ---
+        function generateSelectMenus() {
+            const createSelect = (id, cssClass) => { const select = document.createElement("select"); select.id = id; select.classList.add("selector-menu", cssClass); return select; };
+            const selects = { erectLengthA: createSelect("set-penis-a-erect-length", "set-penis-erect-length"), erectGirthA: createSelect("set-penis-a-erect-girth", "set-penis-erect-girth"), flaccidLengthA: createSelect("set-penis-a-flaccid-length", "set-penis-flaccid-length"), flaccidGirthA: createSelect("set-penis-a-flaccid-girth", "set-penis-flaccid-girth"), erectLengthB: createSelect("set-penis-b-erect-length", "set-penis-erect-length"), erectGirthB: createSelect("set-penis-b-erect-girth", "set-penis-erect-girth"), flaccidLengthB: createSelect("set-penis-b-flaccid-length", "set-penis-flaccid-length"), flaccidGirthB: createSelect("set-penis-b-flaccid-girth", "set-penis-flaccid-girth") };
+
+            // Generate options from 3.0 to 9.9 inches in steps of 0.1 inches
+            // Loop uses the internal value (inches * 100)
+            const startInternal = 3 * 100; // 3.0 inches
+            const endInternal = 9.9 * 100; // 9.9 inches
+            const stepInternal = 0.1 * 100; // 0.1 inches step
+
+            for (let i = startInternal; i <= endInternal; i += stepInternal) {
+                const option = document.createElement("option");
+                const inchesValue = (i / 100); // Convert internal value back to inches
+                const cmValue = (inchesValue * 2.54);
+
+                option.value = i; // Internal value
+                option.dataset.inches = inchesValue.toFixed(1); // Display with 1 decimal place for 0.1 increments
+                option.dataset.cm = cmValue.toFixed(1); // CM with 1 decimal place
+                option.text = option.dataset.inches + '"';
+
+                Object.values(selects).forEach(sel => sel.add(option.cloneNode(true)));
+            }
+
+            // Append selects to their respective labels
+            document.getElementById("set-penis-a-erect-length-label")?.appendChild(selects.erectLengthA);
+            document.getElementById("set-penis-a-erect-girth-label")?.appendChild(selects.erectGirthA);
+            document.getElementById("set-penis-a-flaccid-length-label")?.appendChild(selects.flaccidLengthA);
+            document.getElementById("set-penis-a-flaccid-girth-label")?.appendChild(selects.flaccidGirthA);
+            document.getElementById("set-penis-b-erect-length-label")?.appendChild(selects.erectLengthB);
+            document.getElementById("set-penis-b-erect-girth-label")?.appendChild(selects.erectGirthB);
+            document.getElementById("set-penis-b-flaccid-length-label")?.appendChild(selects.flaccidLengthB);
+            document.getElementById("set-penis-b-flaccid-girth-label")?.appendChild(selects.flaccidGirthB);
+
+            // Assign DOM references
+            setErectALength = selects.erectLengthA; setErectAGirth = selects.erectGirthA;
+            setFlaccidALength = selects.flaccidLengthA; setFlaccidAGirth = selects.flaccidGirthA;
+            setErectBLength = selects.erectLengthB; setErectBGirth = selects.erectGirthB;
+            setFlaccidBLength = selects.flaccidLengthB; setFlaccidBGirth = selects.flaccidGirthB;
+        }
+
+
+        function setInitialValues() {
+            // Set initial values for selects (using the internal value representation)
+            if (setErectALength) setErectALength.value = avgErectLengthInternal;
+            if (setErectAGirth) setErectAGirth.value = avgErectGirthInternal;
+            if (setFlaccidALength) setFlaccidALength.value = avgFlaccidLengthInternal;
+            if (setFlaccidAGirth) setFlaccidAGirth.value = avgFlaccidGirthInternal;
+
+             // Set initial value and display for the scale slider
+            const initialScaleFactor = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor'));
+            if (scaleFactorSlider) {
+                 scaleFactorSlider.value = initialScaleFactor;
+                 if (currentScaleFactorSpan) {
+                     currentScaleFactorSpan.textContent = initialScaleFactor.toFixed(1);
+                 }
+            }
+
+            // Update visuals based on initial values and default scale factor
+            updateVisualSize("a", "erect");
+            updateVisualSize("a", "flaccid");
+
+            // Set Penis B to average and update visuals
+            setErectAverageB();
+            setFlaccidAverageB();
+
+            // Ensure units are correctly displayed based on initial check (default is inches)
+            if(unitsSelectorMetric?.checked) convertToUnits("metric");
+            else convertToUnits("inches"); // Explicitly set inches text initially
+
+            // Sync settings visibility based on initial state (default is erect)
+            syncActiveSettingsState();
+        }
+
+
+        function updateVisualSize(penisId, state) {
+            const lengthElement = document.getElementById(`penis-${penisId}-${state}-length`);
+            const girthElement = document.getElementById(`penis-${penisId}-${state}-girth`);
+            if (!lengthElement || !girthElement) return;
+
+            const lengthSelect = document.getElementById(`set-penis-${penisId}-${state}-length`);
+            const girthSelect = document.getElementById(`set-penis-${penisId}-${state}-girth`);
+
+            // Get the selected internal value (which represents inches * 100)
+            const currentLengthInternal = lengthSelect ? parseFloat(lengthSelect.value) : null;
+            const currentGirthInternal = girthSelect ? parseFloat(girthSelect.value) : null;
+
+             // Read the current scale ratio from the CSS variable
+            fixedScaleRatio = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--scale-factor'));
+
+            // The original scale had 1 inch represented by 66px.
+            const originalUnitHeightPerInch = 66; // px per 1 inch
+
+            // Apply height and width
+            if (currentLengthInternal !== null) {
+                 // The internal value is length in 0.01 inch increments (value / 100 = inches)
+                 const lengthInches = currentLengthInternal / 100;
+                 // Total height = Length in inches * (Scaled height of a 1 inch unit)
+                 lengthElement.style.height = lengthInches * (originalUnitHeightPerInch * fixedScaleRatio) + "px";
+             }
+
+            if (currentGirthInternal !== null) {
+                 const girthRatio = state === 'erect' ? erectGirthRatio : flaccidGirthRatio;
+                 // The internal value is girth in 0.01 inch increments (value / 100 = inches)
+                 const girthInches = currentGirthInternal / 100;
+                 // Using the visual girthRatio (Diameter = Girth / girthRatio):
+                 // Visual width represents the Diameter scaled by the height of a 1 inch unit.
+                 // Visual width = (Girth in inches / girthRatio) * (Scaled height of a 1 inch unit)
+                  girthElement.style.width = (girthInches / girthRatio) * (originalUnitHeightPerInch * fixedScaleRatio) + "px";
+            }
+        }
+
+
+        // Function to set Penis B to average values (used by buttons)
+        function setErectAverageB() {
+            if(setErectBLength) setErectBLength.value = avgErectLengthInternal;
+            if(setErectBGirth) setErectBGirth.value = avgErectGirthInternal;
+            updateVisualSize("b", "erect");
+        }
+        function setFlaccidAverageB() {
+            if(setFlaccidBLength) setFlaccidBLength.value = avgFlaccidLengthInternal;
+            if(setFlaccidBGirth) setFlaccidBGirth.value = avgFlaccidGirthInternal;
+            updateVisualSize("b", "flaccid");
+        }
+
+
+        // Function to update option text based on selected units
+        function convertToUnits(units) {
+            const selects = [ setErectALength, setErectAGirth, setFlaccidALength, setFlaccidAGirth, setErectBLength, setErectBGirth, setFlaccidBLength, setFlaccidBGirth ];
+            selects.forEach(select => {
+                if (!select) return;
+                select.querySelectorAll("option").forEach((option) => {
+                    option.textContent = (units === "metric") ? option.dataset.cm + "cm" : option.dataset.inches + '"';
+                });
+            });
+        }
+
+        // Function to hide/show settings groups based on state (erect/flaccid)
+        function syncActiveSettingsState() {
+            const isErect = stateSelectorErect?.checked;
+            // Use visibility: hidden to keep elements in the flow but not visible,
+            // then set height/padding/margin to 0 and overflow: hidden via CSS rule
+            // to actually collapse them without major layout shifts.
+            const setVisibility = (elementId, visible) => {
+                 const elem = document.getElementById(elementId);
+                 if (elem) {
+                     // CSS rules handle the height/padding/margin/overflow based on visibility: hidden
+                     elem.style.visibility = visible ? 'visible' : 'hidden';
+                     // Additionally, to prevent interactivity when hidden, we can add pointer-events: none
+                     elem.style.pointerEvents = visible ? 'auto' : 'none';
+                 }
+            };
+            setVisibility('penis-a-erect-settings', isErect);
+            setVisibility('penis-b-erect-settings', isErect);
+            setVisibility('penis-a-flaccid-settings', !isErect);
+            setVisibility('penis-b-flaccid-settings', !isErect);
+        }
+
+        // Function to add all event listeners
+        function addEventListeners() {
+            stateSelectorErect?.addEventListener("change", () => {
+                 comparisonDiv?.classList.replace("state-flaccid", "state-erect");
+                 syncActiveSettingsState();
+            });
+            stateSelectorFlaccid?.addEventListener("change", () => {
+                 comparisonDiv?.classList.replace("state-erect", "state-flaccid");
+                 syncActiveSettingsState();
+            });
+            unitsSelectorInches?.addEventListener("change", () => {
+                 comparisonDiv?.classList.replace("units-metric", "units-inches");
+                 convertToUnits("inches");
+                 // Update visual sizes after unit change
+                 updateVisualSize("a", stateSelectorErect?.checked ? "erect" : "flaccid");
+                 updateVisualSize("b", stateSelectorErect?.checked ? "erect" : "flaccid");
+             });
+            unitsSelectorMetric?.addEventListener("change", () => {
+                 comparisonDiv?.classList.replace("units-inches", "units-metric");
+                 convertToUnits("metric");
+                 // Update visual sizes after unit change
+                 updateVisualSize("a", stateSelectorErect?.checked ? "erect" : "flaccid");
+                 updateVisualSize("b", stateSelectorErect?.checked ? "erect" : "flaccid");
+            });
+
+            // Add listeners for change on all select menus to update visuals
+            setErectALength?.addEventListener("change", () => updateVisualSize("a", "erect"));
+            setErectAGirth?.addEventListener("change", () => updateVisualSize("a", "erect"));
+            setFlaccidALength?.addEventListener("change", () => updateVisualSize("a", "flaccid"));
+            setFlaccidAGirth?.addEventListener("change", () => updateVisualSize("a", "flaccid"));
+            setErectBLength?.addEventListener("change", () => updateVisualSize("b", "erect"));
+            setErectBGirth?.addEventListener("change", () => updateVisualSize("b", "erect"));
+            setFlaccidBLength?.addEventListener("change", () => updateVisualSize("b", "flaccid"));
+            setFlaccidBGirth?.addEventListener("change", () => updateVisualSize("b", "flaccid"));
+
+            // Add listener for the scale factor slider
+            scaleFactorSlider?.addEventListener('input', (event) => {
+                const newScale = parseFloat(event.target.value);
+                document.documentElement.style.setProperty('--scale-factor', newScale);
+                if (currentScaleFactorSpan) {
+                    currentScaleFactorSpan.textContent = newScale.toFixed(1);
+                }
+                // Update the visuals based on the new scale factor
+                 updateVisualSize("a", stateSelectorErect?.checked ? "erect" : "flaccid");
+                 updateVisualSize("b", stateSelectorErect?.checked ? "erect" : "flaccid");
+            });
+        }
+
+
+        // Initialize the application when the DOM is ready
+        document.addEventListener("DOMContentLoaded", function() {
+            // Get core DOM references
+            comparisonDiv = document.getElementById("penis-comparison");
+            stateSelectorErect = document.getElementById("selector-erect");
+            stateSelectorFlaccid = document.getElementById("selector-flaccid");
+            unitsSelectorInches = document.getElementById("selector-inches");
+            unitsSelectorMetric = document.getElementById("selector-metric");
+            scaleFactorSlider = document.getElementById("scale-factor-slider"); // Get slider reference
+            currentScaleFactorSpan = document.getElementById("current-scale-factor"); // Get span reference
+
+
+            // Build the select menus dynamically
+            generateSelectMenus();
+
+            // Add all necessary event listeners
+            addEventListeners();
+
+            // Set initial values and update the visual representation
+            setInitialValues();
+
+            // fixedScaleRatio is now read inside updateVisualSize, no need to set it here
+             // The initial call to updateVisualSize in setInitialValues uses the default CSS variable.
+        });
+
+    </script>
+</body>
+</html>
